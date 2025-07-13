@@ -1,0 +1,53 @@
+{
+  "532160348300771338": {
+    "money": 289,
+    "bank": 0,
+    "level": 1,
+    "exp": 40,
+    "daily": 1752325505339,
+    "weekly": 0,
+    "monthly": 0,
+    "inventory": {},
+    "pets": [],
+    "achievements": [],
+    "lastHunt": 1752340048223,
+    "lastFish": 0,
+    "lastMine": 0,
+    "lastRob": 1752340251478,
+    "streak": {
+      "daily": 1,
+      "hunt": 0,
+      "fish": 0
+    },
+    "lastWork": 1752380255289
+  },
+  "695878055679230012": {
+    "money": 864,
+    "bank": 0,
+    "level": 1,
+    "exp": 67,
+    "daily": 0,
+    "weekly": 0,
+    "monthly": 0,
+    "inventory": {},
+    "pets": [],
+    "achievements": [],
+    "lastHunt": 1752340067654,
+    "lastFish": 1752380322508,
+    "lastMine": 0,
+    "lastRob": 1752380289329,
+    "streak": {
+      "daily": 0,
+      "hunt": 0,
+      "fish": 0
+    },
+    "fishingStats": {
+      "totalCaught": 2,
+      "bestFish": {
+        "name": "🐟 Cá nhỏ",
+        "value": 88
+      }
+    },
+    "lastWork": 1752380265551
+  }
+}
