@@ -1,77 +1,78 @@
 const { EmbedBuilder } = require('discord.js');
-const { EconomyDatabase } = require('../../database/economy');
+const EconomyDatabase = require('../../database/economy');
+const { onWorkSuccess } = require('./achievements');
 
 module.exports = {
   data: {
     name: 'work',
-    description: 'Đi làm việc để kiếm tiền',
+    description: 'Làm việc kiếm tiền mỗi 30 phút.',
     usage: 'work',
-    cooldown: 5,
+    cooldown: 1800,
     category: 'economy'
   },
-  execute: async (message, args) => {
-    const user = EconomyDatabase.getUser(message.author.id);
+  async execute(message, args) {
+    const userId = message.author.id;
+    const user = EconomyDatabase.getUser(userId);
+    if (!user) {
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('Lỗi')
+            .setDescription('Bạn chưa có tài khoản! Hãy chat hoặc thực hiện lệnh bất kỳ để tạo tài khoản.')
+            .setColor('#FF89A0')
+        ]
+      });
+    }
     const now = Date.now();
-    const cooldown = 60 * 1000; // 1 phút
-    
-    if (now - (user.lastWork || 0) < cooldown) {
-      const timeLeft = Math.ceil((cooldown - (now - (user.lastWork || 0))) / 1000);
-      const embed = new EmbedBuilder()
-        .setTitle('💼 Đi làm')
-        .setDescription(`Bạn đang mệt! Hãy nghỉ ngơi thêm **${timeLeft}** giây nữa.`)
-        .setColor(message.client.config.embedColors.error);
-      
-      return message.reply({ embeds: [embed] });
+    const diff = now - (user.lastWork || 0);
+
+    if (diff < 1800000) {
+      const timeLeft = 1800000 - diff;
+      const minutes = Math.floor(timeLeft / 60000);
+      const seconds = Math.floor((timeLeft % 60000) / 1000);
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('⏰ Bạn vừa làm việc xong')
+            .setDescription(`Hãy đợi **${minutes} phút ${seconds} giây** để làm việc tiếp.`)
+            .setColor('#FF89A0')
+        ]
+      });
     }
-    
-    // Danh sách công việc
-    const jobs = [
-      { name: '🧹 Quét dọn', reward: 80, description: 'Bạn đã quét dọn cửa hàng' },
-      { name: '🚗 Lái xe', reward: 120, description: 'Bạn đã lái xe taxi' },
-      { name: '🍕 Giao hàng', reward: 100, description: 'Bạn đã giao pizza' },
-      { name: '💻 Lập trình', reward: 200, description: 'Bạn đã viết code' },
-      { name: '🎨 Thiết kế', reward: 150, description: 'Bạn đã thiết kế poster' },
-      { name: '📚 Dạy học', reward: 180, description: 'Bạn đã dạy học sinh' },
-      { name: '🏥 Y tá', reward: 220, description: 'Bạn đã chăm sóc bệnh nhân' },
-      { name: '🎵 Biểu diễn', reward: 160, description: 'Bạn đã biểu diễn âm nhạc' },
-      { name: '🔧 Sửa chữa', reward: 140, description: 'Bạn đã sửa máy móc' },
-      { name: '🎭 Diễn xuất', reward: 300, description: 'Bạn đã diễn trong phim' }
-    ];
-    
-    const job = jobs[Math.floor(Math.random() * jobs.length)];
-    const baseReward = job.reward;
-    const levelBonus = Math.floor(baseReward * (user.level * 0.15));
-    const totalReward = baseReward + levelBonus;
-    
-    // Cập nhật dữ liệu
+
+    const coinReward = 800 + Math.floor(Math.random() * 500);
+    user.coins += coinReward;
     user.lastWork = now;
-    user.money += totalReward;
-    user.exp += 10;
-    
-    // Level up
-    const expNeeded = user.level * 100;
-    if (user.exp >= expNeeded) {
-      user.level++;
-      user.exp -= expNeeded;
+    EconomyDatabase.updateUser(userId, user);
+
+    // Check achievement
+    const newAchievements = onWorkSuccess(userId);
+
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle('💼 Làm việc thành công!')
+          .setDescription(`Bạn đã nhận được **${coinReward.toLocaleString()}** 🪙 từ công việc.`)
+          .setColor('#43EA97')
+          .setTimestamp()
+      ]
+    });
+
+    // Gửi embed thành tựu nếu có
+    if (newAchievements && newAchievements.length > 0) {
+      setTimeout(() => {
+        newAchievements.forEach(achievement => {
+          const achievementEmbed = new EmbedBuilder()
+            .setTitle('🏆 Thành tựu mới!')
+            .setDescription(`Bạn đã hoàn thành: **${achievement.name}**`)
+            .addFields(
+              { name: '🎁 Phần thưởng:', value: `+${achievement.reward.toLocaleString()} coins`, inline: true }
+            )
+            .setColor('#FFD580')
+            .setTimestamp();
+          message.channel.send({ embeds: [achievementEmbed] });
+        });
+      }, 1200);
     }
-    
-    EconomyDatabase.updateUser(message.author.id, user);
-    
-    const workEmbed = new EmbedBuilder()
-      .setTitle('💼 Đi làm thành công!')
-      .setDescription(`${job.description} và kiếm được tiền!`)
-      .addFields(
-        { name: '💰 Lương cơ bản', value: `${baseReward.toLocaleString()} 🪙`, inline: true },
-        { name: '📊 Level bonus', value: `${levelBonus.toLocaleString()} 🪙`, inline: true },
-        { name: '💵 Tổng thu nhập', value: `${totalReward.toLocaleString()} 🪙`, inline: true },
-        { name: '📈 EXP nhận được', value: `+10 EXP`, inline: true },
-        { name: '💰 Số dư mới', value: `${user.money.toLocaleString()} 🪙`, inline: true },
-        { name: '📊 Level', value: `${user.level}`, inline: true }
-      )
-      .setColor(message.client.config.embedColors.success)
-      .setTimestamp()
-      .setThumbnail(message.author.displayAvatarURL({ dynamic: true }));
-    
-    await message.reply({ embeds: [workEmbed] });
   }
 };

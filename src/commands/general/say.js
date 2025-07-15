@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const { validateContent, parseChannelMention } = require('../../utils/validator');
+const { validateContent } = require('../../utils/validator');
 const { createErrorEmbed, createSuccessEmbed } = require('../../utils/embedBuilder');
 
 module.exports = {
@@ -19,7 +19,7 @@ module.exports = {
           { name: 'Cú pháp:', value: `\`${message.client.config.prefix}say <text>\``, inline: false },
           { name: 'Tùy chọn:', value: '`--channel #channel` - Gửi đến kênh khác\n`--embed` - Gửi dưới dạng embed\n`--no-delete` - Không xóa tin nhắn gốc', inline: false }
         )
-        .setColor(message.client.config.embedColors.info)
+        .setColor(message.client.config?.embedColors?.info || '#3498db') // Fallback color
         .setTimestamp();
       
       return message.reply({ embeds: [helpEmbed] });
@@ -38,6 +38,9 @@ module.exports = {
       if (channel?.isTextBased()) {
         targetChannel = channel;
         content = content.replace(/--channel\s+<#\d+>/, '').trim();
+      } else {
+        const embed = createErrorEmbed('Lỗi', 'Kênh không hợp lệ hoặc không thể gửi tin nhắn đến kênh này.');
+        return message.reply({ embeds: [embed] });
       }
     }
     
@@ -68,7 +71,7 @@ module.exports = {
       if (useEmbed) {
         const sayEmbed = new EmbedBuilder()
           .setDescription(content)
-          .setColor(message.client.config.embedColors.success)
+          .setColor(message.client.config?.embedColors?.success || '#00FF00') // Fallback color
           .setFooter({ 
             text: `Được gửi bởi ${message.author.tag}`, 
             iconURL: message.author.displayAvatarURL({ dynamic: true })

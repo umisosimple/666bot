@@ -1,40 +1,83 @@
-const { EmbedBuilder } = require('discord.js');
+// src/utils/embedBuilder.js
 
-function createErrorEmbed(title, description) {
-  return new EmbedBuilder()
-    .setTitle(`❌ ${title}`)
-    .setDescription(description)
-    .setColor('#ff0000')
-    .setTimestamp();
+const { EmbedBuilder } = require("discord.js");
+
+const EMBED_COLORS = {
+  error: "#FF89A0",     // Đỏ hồng pastel dịu
+  success: "#43EA97",   // Xanh ngọc bích Discord
+  warning: "#FFD580",   // Vàng cam pastel nhẹ
+  info: "#5865F2",      // Xanh Discord
+  custom: "#00BFFF"     // Cyan hiện đại
+};
+
+// Success
+function createSuccessEmbed(title, description, options = {}) {
+  const embed = new EmbedBuilder()
+    .setColor(EMBED_COLORS.success)
+    .setTitle(title || "Thành công!")
+    .setDescription(description || "Thao tác thành công!");
+
+  if (options.icon) embed.setAuthor({ name: options.icon });
+  if (options.footer) embed.setFooter({ text: options.footer });
+
+  return embed;
 }
 
-function createSuccessEmbed(title, description) {
-  return new EmbedBuilder()
-    .setTitle(`✅ ${title}`)
-    .setDescription(description)
-    .setColor('#00ff00')
-    .setTimestamp();
+// Error
+function createErrorEmbed(title, description, options = {}) {
+  const embed = new EmbedBuilder()
+    .setColor(EMBED_COLORS.error)
+    .setTitle(title || "Lỗi!")
+    .setDescription(description || "Đã xảy ra lỗi!");
+
+  if (options.icon) embed.setAuthor({ name: options.icon });
+  if (options.footer) embed.setFooter({ text: options.footer });
+
+  return embed;
 }
 
-function createWarningEmbed(title, description) {
-  return new EmbedBuilder()
-    .setTitle(`⚠️ ${title}`)
-    .setDescription(description)
-    .setColor('#ffaa00')
-    .setTimestamp();
+// Warning
+function createWarningEmbed(title, description, options = {}) {
+  const embed = new EmbedBuilder()
+    .setColor(EMBED_COLORS.warning)
+    .setTitle(title || "Cảnh báo!")
+    .setDescription(description || "Đây là cảnh báo!");
+
+  if (options.icon) embed.setAuthor({ name: options.icon });
+  if (options.footer) embed.setFooter({ text: options.footer });
+
+  return embed;
 }
 
-function createInfoEmbed(title, description) {
-  return new EmbedBuilder()
-    .setTitle(`ℹ️ ${title}`)
-    .setDescription(description)
-    .setColor('#0099ff')
-    .setTimestamp();
+// Info
+function createInfoEmbed(title, description, options = {}) {
+  const embed = new EmbedBuilder()
+    .setColor(EMBED_COLORS.info)
+    .setTitle(title || "Thông tin")
+    .setDescription(description || "Đây là thông tin!");
+
+  if (options.icon) embed.setAuthor({ name: options.icon });
+  if (options.footer) embed.setFooter({ text: options.footer });
+
+  return embed;
+}
+
+// Custom
+function createCustomEmbed({ title, description, color, icon, footer }) {
+  const embed = new EmbedBuilder()
+    .setColor(color || EMBED_COLORS.custom)
+    .setTitle(title || "")
+    .setDescription(description || "");
+  if (icon) embed.setAuthor({ name: icon });
+  if (footer) embed.setFooter({ text: footer });
+  return embed;
 }
 
 module.exports = {
-  createErrorEmbed,
   createSuccessEmbed,
+  createErrorEmbed,
   createWarningEmbed,
-  createInfoEmbed
+  createInfoEmbed,
+  createCustomEmbed,
+  EMBED_COLORS
 };

@@ -1,53 +1,535 @@
 {
   "532160348300771338": {
-    "money": 289,
+    "money": 1741,
     "bank": 0,
-    "level": 1,
-    "exp": 40,
-    "daily": 1752325505339,
+    "level": 4,
+    "exp": 85,
+    "daily": 1752432894777,
     "weekly": 0,
     "monthly": 0,
     "inventory": {},
     "pets": [],
-    "achievements": [],
-    "lastHunt": 1752340048223,
-    "lastFish": 0,
+    "achievements": [
+      {
+        "name": "Lần đầu câu cá",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu săn bắt",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu làm việc",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu nhận phần thưởng hàng ngày",
+        "completed": true,
+        "reward": 300
+      },
+      {
+        "name": "Câu cá 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Câu cá 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Câu cá 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Câu cá 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Câu cá 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Câu cá 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Săn bắn 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Săn bắn 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Săn bắn 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Săn bắn 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Săn bắn 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Săn bắn 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Làm việc 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Làm việc 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Làm việc 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Làm việc 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Làm việc 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Làm việc 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 7 ngày liên tiếp",
+        "completed": false,
+        "reward": 1500
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 14 ngày liên tiếp",
+        "completed": false,
+        "reward": 2000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 30 ngày liên tiếp",
+        "completed": false,
+        "reward": 3000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 60 ngày liên tiếp",
+        "completed": false,
+        "reward": 5000
+      }
+    ],
+    "lastHunt": 1752472009868,
+    "lastFish": 1752471968312,
     "lastMine": 0,
-    "lastRob": 1752340251478,
+    "lastRob": 1752526358210,
     "streak": {
-      "daily": 1,
+      "daily": 2,
       "hunt": 0,
       "fish": 0
     },
-    "lastWork": 1752380255289
+    "lastWork": 1752471961012,
+    "huntingStats": {
+      "totalHunted": 5,
+      "bestHunt": {
+        "name": "🦌 Hươu",
+        "value": 336
+      }
+    },
+    "tasks": {
+      "daily": false,
+      "fish": 0,
+      "hunt": 0,
+      "work": 0,
+      "lastReset": 1752478079032
+    },
+    "lastMessageExp": 1752558924837,
+    "fishingStats": {
+      "totalCaught": 2,
+      "bestFish": null
+    },
+    "workStats": {
+      "totalWorked": 4
+    },
+    "id": "532160348300771338",
+    "coins": null,
+    "lastDaily": 1752528091950
   },
   "695878055679230012": {
-    "money": 864,
-    "bank": 0,
-    "level": 1,
-    "exp": 67,
-    "daily": 0,
+    "money": 1233,
+    "bank": 1837,
+    "level": 5,
+    "exp": 470,
+    "daily": 1752478010626,
     "weekly": 0,
     "monthly": 0,
-    "inventory": {},
+    "inventory": {
+      "exp_booster": {
+        "name": "⚡ Thuốc tăng EXP",
+        "type": "consumable",
+        "description": "Tăng gấp đôi EXP nhận được trong 1 giờ",
+        "purchaseDate": 1752431179434
+      }
+    },
     "pets": [],
-    "achievements": [],
-    "lastHunt": 1752340067654,
-    "lastFish": 1752380322508,
+    "achievements": [
+      {
+        "name": "Lần đầu câu cá",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu săn bắt",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu làm việc",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu nhận phần thưởng hàng ngày",
+        "completed": true,
+        "reward": 300
+      },
+      {
+        "name": "Câu cá 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Câu cá 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Câu cá 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Câu cá 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Câu cá 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Câu cá 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Săn bắn 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Săn bắn 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Săn bắn 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Săn bắn 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Săn bắn 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Săn bắn 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Làm việc 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Làm việc 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Làm việc 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Làm việc 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Làm việc 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Làm việc 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 7 ngày liên tiếp",
+        "completed": false,
+        "reward": 1500
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 14 ngày liên tiếp",
+        "completed": false,
+        "reward": 2000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 30 ngày liên tiếp",
+        "completed": false,
+        "reward": 3000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 60 ngày liên tiếp",
+        "completed": false,
+        "reward": 5000
+      }
+    ],
+    "lastHunt": 1752521862609,
+    "lastFish": 1752521868230,
     "lastMine": 0,
-    "lastRob": 1752380289329,
+    "lastRob": 1752520337033,
     "streak": {
-      "daily": 0,
+      "daily": 2,
       "hunt": 0,
       "fish": 0
     },
     "fishingStats": {
-      "totalCaught": 2,
+      "totalCaught": 17,
       "bestFish": {
         "name": "🐟 Cá nhỏ",
         "value": 88
       }
     },
-    "lastWork": 1752380265551
+    "lastWork": 1752521872580,
+    "lastMessageExp": 1752522224596,
+    "tasks": {
+      "fish": 5,
+      "hunt": 5,
+      "work": 4,
+      "daily": false,
+      "fishClaimed": true,
+      "huntClaimed": true,
+      "workClaimed": true,
+      "dailyClaimed": false,
+      "claimed": false,
+      "lastReset": 1752520307182
+    },
+    "workStats": {
+      "totalWorked": 18
+    },
+    "huntingStats": {
+      "totalHunted": 15,
+      "bestHunt": null
+    },
+    "id": "695878055679230012",
+    "lastVoiceExp": 1752545986343
+  },
+  "1110971469179142204": {
+    "money": 2084,
+    "bank": 0,
+    "level": 3,
+    "exp": 47,
+    "daily": 0,
+    "lastMessageExp": 1752556001912,
+    "lastVoiceExp": 1752484708227,
+    "lastFish": 1752437657779,
+    "lastHunt": 1752432973314,
+    "lastWork": 1752437785248,
+    "lastRob": 0,
+    "streak": {
+      "daily": 0
+    },
+    "inventory": {},
+    "pets": [],
+    "fishingStats": {
+      "totalCaught": 2
+    },
+    "huntingStats": {
+      "totalHunted": 1
+    },
+    "workStats": {
+      "totalWorked": 5
+    },
+    "achievements": [
+      {
+        "name": "Lần đầu câu cá",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu săn bắt",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu làm việc",
+        "completed": true,
+        "reward": 200
+      },
+      {
+        "name": "Lần đầu nhận phần thưởng hàng ngày",
+        "completed": false,
+        "reward": 300
+      },
+      {
+        "name": "Câu cá 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Câu cá 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Câu cá 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Câu cá 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Câu cá 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Câu cá 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Săn bắn 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Săn bắn 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Săn bắn 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Săn bắn 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Săn bắn 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Săn bắn 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Làm việc 50 lần",
+        "completed": false,
+        "reward": 800
+      },
+      {
+        "name": "Làm việc 100 lần",
+        "completed": false,
+        "reward": 1200
+      },
+      {
+        "name": "Làm việc 300 lần",
+        "completed": false,
+        "reward": 1800
+      },
+      {
+        "name": "Làm việc 500 lần",
+        "completed": false,
+        "reward": 2500
+      },
+      {
+        "name": "Làm việc 700 lần",
+        "completed": false,
+        "reward": 3500
+      },
+      {
+        "name": "Làm việc 1000 lần",
+        "completed": false,
+        "reward": 5000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 7 ngày liên tiếp",
+        "completed": false,
+        "reward": 1500
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 14 ngày liên tiếp",
+        "completed": false,
+        "reward": 2000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 30 ngày liên tiếp",
+        "completed": false,
+        "reward": 3000
+      },
+      {
+        "name": "Hoàn thành tất cả nhiệm vụ hàng ngày trong 60 ngày liên tiếp",
+        "completed": false,
+        "reward": 5000
+      }
+    ],
+    "tasks": {
+      "daily": false,
+      "fish": 2,
+      "hunt": 1,
+      "work": 3,
+      "lastReset": null
+    }
   }
 }

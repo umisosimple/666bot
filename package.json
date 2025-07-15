@@ -1,28 +1,27 @@
 {
-  "name": "666",
+  "name": "666bot",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "description": "Discord bot with economy system",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js", 
-    "stop": "taskkill /f /im node.exe || pkill -f node",
-    "restart": "npm run stop && npm run dev",
-    "pm2:start": "pm2 start index.js --name discord-bot",
-    "pm2:stop": "pm2 stop discord-bot",
-    "pm2:restart": "pm2 restart discord-bot",
-    "pm2:delete": "pm2 delete discord-bot"
+    "dev": "nodemon index.js",
+    "deploy": "node deploy-commands.js",
+    "delete-commands": "node delete-slash-commands.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "discord.js": "^14.21.0",
-    "dotenv": "^17.2.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "ms": "^2.1.3"
   },
   "devDependencies": {
-    "react-scripts": "^0.0.0"
-  }
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "economy"
+  ],
+  "author": "umisosimple",
+  "license": "MIT"
 }

@@ -1,5 +1,26 @@
 const { EmbedBuilder } = require('discord.js');
-const { EconomyDatabase } = require('../../database/economy');
+const EconomyDatabase = require('../../database/economy');
+const { onHuntSuccess } = require('./achievements');
+
+function autoResetTasks(user, now, oneDay) {
+  if (!user.tasks || !user.tasks.lastReset || now - user.tasks.lastReset >= oneDay) {
+    user.tasks = {
+      fish: 0,
+      hunt: 0,
+      work: 0,
+      daily: false,
+      fishClaimed: false,
+      huntClaimed: false,
+      workClaimed: false,
+      dailyClaimed: false,
+      claimed: false,
+      lastReset: now
+    };
+    EconomyDatabase.updateUser(user.id || user.userId, user);
+    return true;
+  }
+  return false;
+}
 
 module.exports = {
   data: {
@@ -7,118 +28,108 @@ module.exports = {
     description: 'Đi săn động vật để kiếm tiền',
     usage: 'hunt',
     aliases: ['hunting'],
-    cooldown: 10,
+    cooldown: 60,
     category: 'economy'
   },
   execute: async (message, args) => {
-    const user = EconomyDatabase.getUser(message.author.id);
+    const userId = message.author.id;
+    const user = EconomyDatabase.getUser(userId);
+    user.id = userId;
     const now = Date.now();
-    const cooldown = 60 * 1000; // 1 phút
-    
-    if (now - (user.lastHunt || 0) < cooldown) {
-      const timeLeft = Math.ceil((cooldown - (now - (user.lastHunt || 0))) / 1000);
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    // Reset nhiệm vụ nếu đã qua 24h
+    autoResetTasks(user, now, oneDay);
+
+    // Cooldown
+    const cooldownCheck = EconomyDatabase.validateCooldown(user.lastHunt, 60000, 'săn bắn');
+    if (!cooldownCheck.valid) {
       const embed = new EmbedBuilder()
         .setTitle('🏹 Săn bắn')
-        .setDescription(`Bạn đang nghỉ ngơi! Đợi **${timeLeft}** giây nữa.`)
-        .setColor(message.client.config.embedColors.error);
-      
+        .setDescription(cooldownCheck.message)
+        .setColor('#FFD580');
       return message.reply({ embeds: [embed] });
     }
-    
-    // Kiểm tra có cung săn không
+
+    user.lastHunt = now;
+
+    // Tăng tiến trình nhiệm vụ hunt
+    user.tasks = user.tasks || {};
+    user.tasks.hunt = (user.tasks.hunt || 0) + 1;
+
     const hasHuntingBow = user.inventory && user.inventory.hunting_bow;
     const baseSuccessRate = 55;
     const bowBonus = hasHuntingBow ? 25 : 0;
     const levelBonus = Math.floor(user.level * 2);
     const successRate = Math.min(baseSuccessRate + bowBonus + levelBonus, 85);
-    
+
     const isSuccess = Math.random() * 100 < successRate;
-    
-    user.lastHunt = now;
-    
+
     if (isSuccess) {
-      // Danh sách động vật
-      const animals = [
-        { name: '🐰 Thỏ rừng', value: 150, rarity: 'common', chance: 35 },
-        { name: '🦌 Hươu', value: 300, rarity: 'common', chance: 25 },
-        { name: '🐗 Heo rừng', value: 450, rarity: 'uncommon', chance: 20 },
-        { name: '🐺 Sói', value: 600, rarity: 'uncommon', chance: 12 },
-        { name: '🐻 Gấu', value: 900, rarity: 'rare', chance: 5 },
-        { name: '🦅 Đại bàng', value: 1200, rarity: 'rare', chance: 2.5 },
-        { name: '🐯 Hổ', value: 2000, rarity: 'legendary', chance: 0.5 }
-      ];
-      
-      // Chọn động vật dựa trên tỷ lệ
-      const random = Math.random() * 100;
-      let cumulativeChance = 0;
-      let huntedAnimal = animals[0]; // default
-      
-      for (const animal of animals) {
-        cumulativeChance += animal.chance;
-        if (random <= cumulativeChance) {
-          huntedAnimal = animal;
-          break;
-        }
-      }
-      
-      // Tính toán thu nhập
-      const baseValue = huntedAnimal.value;
-      const bowMultiplier = hasHuntingBow ? 1.25 : 1;
-      const levelMultiplier = 1 + (user.level * 0.12);
-      const totalValue = Math.floor(baseValue * bowMultiplier * levelMultiplier);
-      
-      // Cập nhật dữ liệu
-      user.money += totalValue;
-      user.exp += 15;
-      
-      // Cập nhật thống kê săn bắn
+      const reward = Math.floor(Math.random() * (50 - 10 + 1)) + 10;
+      const expGain = 15;
+
+      EconomyDatabase.addMoney(userId, reward);
+      const levelUpResult = EconomyDatabase.addExp(userId, expGain);
+
       if (!user.huntingStats) {
         user.huntingStats = { totalHunted: 0, bestHunt: null };
       }
       user.huntingStats.totalHunted++;
-      if (!user.huntingStats.bestHunt || totalValue > user.huntingStats.bestHunt.value) {
-        user.huntingStats.bestHunt = { name: huntedAnimal.name, value: totalValue };
-      }
-      
-      // Level up
-      const expNeeded = user.level * 100;
-      if (user.exp >= expNeeded) {
-        user.level++;
-        user.exp -= expNeeded;
-      }
-      
-      EconomyDatabase.updateUser(message.author.id, user);
-      
-      const rarityColors = {
-        'common': 0x95a5a6,
-        'uncommon': 0x3498db,
-        'rare': 0x9b59b6,
-        'legendary': 0xf39c12
-      };
-      
+
+      EconomyDatabase.updateUser(userId, user);
+
+      const newAchievements = onHuntSuccess(userId);
+
+const updatedUser = EconomyDatabase.getUser(userId);
+
+await message.reply({ embeds: [huntEmbed] });
+
+if (levelUpResult) {
+  setTimeout(() => {
+    message.channel.send({ content: levelUpResult.message });
+  }, 1000);
+}
+
+// ===== GỬI EMBED THÀNH TỰU MỚI (nếu có) =====
+if (newAchievements && newAchievements.length > 0) {
+  setTimeout(() => {
+    newAchievements.forEach(achievement => {
+      const achievementEmbed = new EmbedBuilder()
+        .setTitle('🏆 Thành tựu mới!')
+        .setDescription(`Bạn đã hoàn thành: **${achievement.name}**`)
+        .addFields(
+          { name: '🎁 Phần thưởng:', value: `+${achievement.reward.toLocaleString()} coins`, inline: true }
+        )
+        .setColor('#FFD580') // Vàng cam pastel (hoặc #43EA97 nếu bạn muốn màu success)
+        .setTimestamp();
+      message.channel.send({ embeds: [achievementEmbed] });
+    });
+  }, 2000);
+}
+
+
       const huntEmbed = new EmbedBuilder()
         .setTitle('🏹 Săn bắn thành công!')
-        .setDescription(`Bạn đã săn được ${huntedAnimal.name}!`)
+        .setDescription(`Bạn đã săn được và nhận được **${reward} coins**!`)
         .addFields(
-          { name: '🎯 Con mồi:', value: huntedAnimal.name, inline: true },
-          { name: '💰 Giá trị:', value: `${totalValue.toLocaleString()} 🪙`, inline: true },
-          { name: '⭐ Độ hiếm:', value: huntedAnimal.rarity, inline: true },
-          { name: '📈 EXP:', value: `+15 EXP`, inline: true },
-          { name: '💵 Số dư:', value: `${user.money.toLocaleString()} 🪙`, inline: true },
-          { name: '🎯 Tổng săn được:', value: `${user.huntingStats.totalHunted}`, inline: true }
+          { name: '📈 EXP:', value: `+${expGain} EXP`, inline: true },
+          { name: '💵 Số dư:', value: `${updatedUser.money.toLocaleString()} 🪙`, inline: true },
+          { name: '🎯 Tổng săn được:', value: `${updatedUser.huntingStats.totalHunted}`, inline: true }
         )
-        .setColor(rarityColors[huntedAnimal.rarity])
+        .setColor('#43EA97')
         .setTimestamp()
         .setThumbnail(message.author.displayAvatarURL({ dynamic: true }));
-      
-      if (hasHuntingBow) {
-        huntEmbed.setFooter({ text: 'Bonus từ cung săn chuyên nghiệp!' });
-      }
-      
+
       await message.reply({ embeds: [huntEmbed] });
-      
+
+      if (levelUpResult) {
+        setTimeout(() => {
+          message.channel.send({ content: levelUpResult.message });
+        }, 1000);
+      }
+
     } else {
-      // Săn bắn thất bại
       const failMessages = [
         'Động vật đã phát hiện ra bạn và bỏ chạy!',
         'Mũi tên bắn trượt mục tiêu!',
@@ -126,25 +137,24 @@ module.exports = {
         'Không tìm thấy động vật nào...',
         'Thời tiết không thuận lợi để săn!'
       ];
-      
+
       const failMessage = failMessages[Math.floor(Math.random() * failMessages.length)];
-      
-      // Vẫn nhận được ít EXP
-      user.exp += 5;
-      EconomyDatabase.updateUser(message.author.id, user);
-      
+
+      const expGain = 5;
+      EconomyDatabase.addExp(userId, expGain);
+      EconomyDatabase.updateUser(userId, user);
+
       const failEmbed = new EmbedBuilder()
         .setTitle('🏹 Săn bắn thất bại!')
         .setDescription(failMessage)
         .addFields(
-          { name: '📈 EXP nhận được:', value: `+5 EXP (kinh nghiệm)`, inline: true },
-          { name: '🎯 Tỷ lệ thành công:', value: `${successRate}%`, inline: true },
+          { name: '📈 EXP nhận được:', value: `+${expGain} EXP (kinh nghiệm)`, inline: true },
           { name: '💡 Mẹo:', value: 'Mua cung săn để tăng tỷ lệ!', inline: true }
         )
-        .setColor(message.client.config.embedColors.error)
+        .setColor('#FF89A0')
         .setTimestamp()
         .setThumbnail(message.author.displayAvatarURL({ dynamic: true }));
-      
+
       await message.reply({ embeds: [failEmbed] });
     }
   }

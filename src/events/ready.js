@@ -7,14 +7,19 @@ module.exports = {
   execute(client) {
     logger.info(`${client.user.tag} is online! PID: ${process.pid}`);
     
-    // Set presence
-    client.user.setPresence({
-      activities: [{ 
-        name: client.config.presence.name,
-        type: ActivityType.Listening,
-        url: client.config.presence.url
-      }],
-      status: client.config.presence.status
-    });
+    // Thiết lập trạng thái hiện diện
+    try {
+      client.user.setPresence({
+        activities: [{ 
+          name: client.config.presence.name || 'Một hoạt động nào đó', // Giá trị mặc định
+          type: ActivityType.Listening,
+          url: client.config.presence.url || 'https://example.com' // Giá trị mặc định
+        }],
+        status: client.config.presence.status || 'online' // Giá trị mặc định
+      });
+      logger.info('Presence set successfully.');
+    } catch (error) {
+      logger.error('Error setting presence:', error);
+    }
   },
 };

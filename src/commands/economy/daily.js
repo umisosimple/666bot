@@ -1,76 +1,79 @@
 const { EmbedBuilder } = require('discord.js');
-const { EconomyDatabase } = require('../../database/economy');
+const EconomyDatabase = require('../../database/economy');
+const { onDailyReward } = require('./achievements');
 
 module.exports = {
   data: {
     name: 'daily',
-    description: 'Nhận phần thưởng hàng ngày',
+    description: 'Nhận phần thưởng hàng ngày.',
     usage: 'daily',
-    cooldown: 5,
+    cooldown: 86400,
     category: 'economy'
   },
-  execute: async (message, args) => {
-    const user = EconomyDatabase.getUser(message.author.id);
+  async execute(message, args) {
+    const userId = message.author.id;
+    const user = EconomyDatabase.getUser(userId);
+    if (!user) {
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('Lỗi')
+            .setDescription('Bạn chưa có tài khoản! Hãy chat hoặc thực hiện lệnh bất kỳ để tạo tài khoản.')
+            .setColor('#FF89A0') // Error pastel
+        ]
+      });
+    }
     const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    
-    if (now - user.daily < oneDay) {
-      const timeLeft = oneDay - (now - user.daily);
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      
-      const embed = new EmbedBuilder()
-        .setTitle('⏰ Phần thưởng hàng ngày')
-        .setDescription(`Bạn đã nhận phần thưởng hôm nay rồi!\nHãy quay lại sau **${hours}h ${minutes}m**`)
-        .setColor(message.client.config.embedColors.error)
-        .setTimestamp();
-      
-      return message.reply({ embeds: [embed] });
+    const diff = now - (user.lastDaily || 0);
+
+    if (diff < 86400000) {
+      const timeLeft = 86400000 - diff;
+      const hours = Math.floor(timeLeft / 3600000);
+      const minutes = Math.floor((timeLeft % 3600000) / 60000);
+      const seconds = Math.floor((timeLeft % 60000) / 1000);
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('⏰ Chưa đến giờ nhận thưởng')
+            .setDescription(`Bạn cần đợi **${hours}h ${minutes}m ${seconds}s** để nhận daily tiếp theo.`)
+            .setColor('#FF89A0')
+        ]
+      });
     }
-    
-    // Tính toán streak
-    const isConsecutive = (now - user.daily) < (oneDay + 60 * 60 * 1000); // 25 giờ tolerance
-    if (isConsecutive && user.daily > 0) {
-      user.streak.daily++;
-    } else {
-      user.streak.daily = 1;
+
+    const coinReward = 1000 + Math.floor(Math.random() * 1000);
+    user.coins += coinReward;
+    user.lastDaily = now;
+    EconomyDatabase.updateUser(userId, user);
+
+    // Check achievement
+    const newAchievements = onDailyReward(userId);
+
+    await message.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle('🎁 Nhận thưởng hàng ngày!')
+          .setDescription(`Bạn đã nhận được **${coinReward.toLocaleString()}** 🪙!`)
+          .setColor('#43EA97')
+          .setTimestamp()
+      ]
+    });
+
+    // Gửi embed thành tựu nếu có
+    if (newAchievements && newAchievements.length > 0) {
+      setTimeout(() => {
+        newAchievements.forEach(achievement => {
+          const achievementEmbed = new EmbedBuilder()
+            .setTitle('🏆 Thành tựu mới!')
+            .setDescription(`Bạn đã hoàn thành: **${achievement.name}**`)
+            .addFields(
+              { name: '🎁 Phần thưởng:', value: `+${achievement.reward.toLocaleString()} coins`, inline: true }
+            )
+            .setColor('#FFD580')
+            .setTimestamp();
+          message.channel.send({ embeds: [achievementEmbed] });
+        });
+      }, 1200);
     }
-    
-    // Tính phần thưởng
-    const baseReward = 500;
-    const streakBonus = user.streak.daily * 50;
-    const levelBonus = user.level * 25;
-    const totalReward = baseReward + streakBonus + levelBonus;
-    
-    // Cập nhật dữ liệu
-    user.daily = now;
-    user.money += totalReward;
-    user.exp += 25;
-    
-    // Kiểm tra level up
-    const expNeeded = user.level * 100;
-    if (user.exp >= expNeeded) {
-      user.level++;
-      user.exp -= expNeeded;
-    }
-    
-    EconomyDatabase.updateUser(message.author.id, user);
-    
-    const rewardEmbed = new EmbedBuilder()
-      .setTitle('🎁 Phần thưởng hàng ngày!')
-      .setDescription(`Bạn đã nhận được **${totalReward.toLocaleString()} 🪙**!`)
-      .addFields(
-        { name: '💰 Phần thưởng cơ bản', value: `${baseReward.toLocaleString()} 🪙`, inline: true },
-        { name: '🔥 Streak bonus', value: `${streakBonus.toLocaleString()} 🪙`, inline: true },
-        { name: '📊 Level bonus', value: `${levelBonus.toLocaleString()} 🪙`, inline: true },
-        { name: '🔥 Streak hiện tại', value: `${user.streak.daily} ngày`, inline: true },
-        { name: '💵 Số dư mới', value: `${user.money.toLocaleString()} 🪙`, inline: true },
-        { name: '📊 Level', value: `${user.level} (${user.exp}/${user.level * 100} EXP)`, inline: true }
-      )
-      .setColor(message.client.config.embedColors.success)
-      .setTimestamp()
-      .setThumbnail(message.author.displayAvatarURL({ dynamic: true }));
-    
-    await message.reply({ embeds: [rewardEmbed] });
   }
 };
