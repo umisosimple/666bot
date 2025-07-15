@@ -51,7 +51,7 @@ module.exports = {
   },
   execute: async (message, args) => {
     const bet = parseInt(args[0]);
-    const user = EconomyDatabase.getUser(message.author.id);
+    const user = await EconomyDatabase.getUser(message.author.id);
 
     if (isNaN(bet) || bet <= 0) {
       return message.reply('Vui lòng nhập số tiền cược hợp lệ!');

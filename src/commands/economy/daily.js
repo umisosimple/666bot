@@ -44,6 +44,45 @@ module.exports = {
     const coinReward = 1000 + Math.floor(Math.random() * 1000);
     user.coins += coinReward;
     user.lastDaily = now;
+
+    // ===== FIX: Update dailytask progress =====
+    // Initialize tasks if not exists
+    if (!user.tasks) {
+      user.tasks = {
+        fish: 0,
+        hunt: 0,
+        work: 0,
+        daily: false,
+        fishClaimed: false,
+        huntClaimed: false,
+        workClaimed: false,
+        dailyClaimed: false,
+        claimed: false,
+        lastReset: now
+      };
+    }
+
+    // Check if tasks need to be reset (24h passed)
+    const oneDay = 24 * 60 * 60 * 1000;
+    if (!user.tasks.lastReset || now - user.tasks.lastReset >= oneDay) {
+      user.tasks = {
+        fish: 0,
+        hunt: 0,
+        work: 0,
+        daily: false,
+        fishClaimed: false,
+        huntClaimed: false,
+        workClaimed: false,
+        dailyClaimed: false,
+        claimed: false,
+        lastReset: now
+      };
+    }
+
+    // Mark daily task as completed
+    user.tasks.daily = true;
+    // ===== END FIX =====
+
     EconomyDatabase.updateUser(userId, user);
 
     // Check achievement

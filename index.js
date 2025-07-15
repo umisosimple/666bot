@@ -70,7 +70,7 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-// Xử lý prefix commands và EXP system
+// Xử lý EXP system
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
@@ -79,7 +79,8 @@ client.on('messageCreate', async (message) => {
     try {
       const levelUpResult = EconomyDatabase.addMessageExp(message.author.id);
       
-      if (levelUpResult) {
+      // FIX: Kiểm tra message tồn tại và không rỗng trước khi gửi
+      if (levelUpResult && levelUpResult.message && levelUpResult.message.trim() !== '') {
         await message.channel.send(levelUpResult.message);
       }
     } catch (error) {
@@ -136,7 +137,8 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if (!oldState.channel && newState.channel && !newState.member.user.bot) {
       const levelUpResult = EconomyDatabase.addVoiceExp(newState.id);
       
-      if (levelUpResult) {
+      // FIX: Kiểm tra message tồn tại và không rỗng trước khi gửi
+      if (levelUpResult && levelUpResult.message && levelUpResult.message.trim() !== '') {
         // Tìm text channel để gửi thông báo
         const textChannel = newState.guild.channels.cache.find(
           channel => channel.type === 0 && channel.name.includes('general')

@@ -4,6 +4,7 @@ const { checkAndApplyCooldown, formatTime } = require('../utils/cooldown');
 const { createErrorEmbed, createWarningEmbed, createSuccessEmbed } = require('../utils/embedBuilder');
 const moderationDB = require('../database/moderation');
 const { validateContent } = require('../utils/validator');
+const EconomyDatabase = require('../database/economy'); // Di chuyển lên đầu
 
 const BAD_WORDS = moderationDB.getSettings().filters?.badWords || ['spam', 'toxic'];
 const MAX_MENTIONS = moderationDB.getSettings().filters?.massMention || 5;
@@ -23,6 +24,29 @@ module.exports = {
     if (message.author.bot) return;
 
     logger.debug(`Processing message: "${message.content}" from ${message.author.tag}`);
+
+    // ===================== TỰ ĐỘNG CỘNG EXP/LEVEL KHI NHẮN TIN =====================
+    // Di chuyển phần xử lý EXP vào trong function execute
+    if (!message.author.bot && message.guild) {
+      // Không cộng EXP cho bot và chỉ cộng trong server
+      const userId = message.author.id;
+      // Cộng ngẫu nhiên từ 2~4 exp, tuỳ chỉnh cho vui
+      const randomExp = Math.floor(Math.random() * 3) + 2;
+      const levelUpResult = EconomyDatabase.addExp(userId, randomExp);
+
+      // Nếu lên cấp, gửi thông báo nhỏ - FIX: Kiểm tra message tồn tại
+      if (levelUpResult && levelUpResult.levelUp) {
+        try {
+          const messageContent = `🎉 <@${userId}> đã lên cấp **${levelUpResult.newLevel}**! ${levelUpResult.message ? levelUpResult.message : ''}`;
+          if (messageContent.trim() !== '') {
+            await message.channel.send({ content: messageContent });
+          }
+        } catch (e) {
+          logger.error('Error sending level up message:', e);
+        }
+      }
+    }
+    // ==============================================================================
 
     // Xử lý các lệnh có tiền tố
     if (!message.content.startsWith(client.config.prefix)) return;
@@ -95,22 +119,4 @@ async function checkAutoMute(message, client) {
   }
 }
 
-// ===================== TỰ ĐỘNG CỘNG EXP/LEVEL KHI NHẮN TIN =====================
-const EconomyDatabase = require('../database/economy'); // Thêm dòng này ở đầu file
-if (!message.author.bot && message.guild) {
-  // Không cộng EXP cho bot và chỉ cộng trong server
-  const userId = message.author.id;
-  // Cộng ngẫu nhiên từ 2~4 exp, tuỳ chỉnh cho vui
-  const randomExp = Math.floor(Math.random() * 3) + 2;
-  const levelUpResult = EconomyDatabase.addExp(userId, randomExp);
-
-  // Nếu lên cấp, gửi thông báo nhỏ
-  if (levelUpResult && levelUpResult.levelUp) {
-    try {
-      await message.channel.send({
-        content: `🎉 <@${userId}> đã lên cấp **${levelUpResult.newLevel}**! ${levelUpResult.message ? levelUpResult.message : ''}`,
-      });
-    } catch (e) {/* ignore */}
-  }
-}
-// ==============================================================================
+// XÓA ĐOẠN CODE PHÍA DƯỚI - đã di chuyển vào trong function execute

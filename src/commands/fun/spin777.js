@@ -18,7 +18,11 @@ module.exports = {
   },
   execute: async (message, args) => {
     const bet = parseInt(args[0]);
-    const user = EconomyDatabase.getUser  (message.author.id);
+    const user = await EconomyDatabase.getUser(message.author.id);
+
+    if (!user) {
+      return message.reply('Không tìm thấy thông tin người dùng!');
+    }
 
     if (isNaN(bet) || bet <= 0) {
       return message.reply('Vui lòng nhập số tiền cược hợp lệ!');
@@ -67,8 +71,15 @@ module.exports = {
       }
 
       user.money += winnings;
-      EconomyDatabase.updateUser  (message.author.id, user);
-      await replyMessage.edit({ embeds: [resultEmbed] });
+      await EconomyDatabase.updateUser(message.author.id, user);
+
+      // Đảm bảo gửi tin nhắn không bị trống
+      if (winnings !== 0) {
+        await replyMessage.edit({ embeds: [resultEmbed] });
+      } else {
+        resultEmbed.addFields({ name: '❌ Không có kết quả', value: 'Có lỗi xảy ra khi tính toán kết quả. Vui lòng thử lại!' });
+        await replyMessage.edit({ embeds: [resultEmbed] });
+      }
     }, 3000);
   }
 };

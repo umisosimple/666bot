@@ -81,34 +81,9 @@ module.exports = {
 
       const newAchievements = onHuntSuccess(userId);
 
-const updatedUser = EconomyDatabase.getUser(userId);
+      const updatedUser = EconomyDatabase.getUser(userId);
 
-await message.reply({ embeds: [huntEmbed] });
-
-if (levelUpResult) {
-  setTimeout(() => {
-    message.channel.send({ content: levelUpResult.message });
-  }, 1000);
-}
-
-// ===== GỬI EMBED THÀNH TỰU MỚI (nếu có) =====
-if (newAchievements && newAchievements.length > 0) {
-  setTimeout(() => {
-    newAchievements.forEach(achievement => {
-      const achievementEmbed = new EmbedBuilder()
-        .setTitle('🏆 Thành tựu mới!')
-        .setDescription(`Bạn đã hoàn thành: **${achievement.name}**`)
-        .addFields(
-          { name: '🎁 Phần thưởng:', value: `+${achievement.reward.toLocaleString()} coins`, inline: true }
-        )
-        .setColor('#FFD580') // Vàng cam pastel (hoặc #43EA97 nếu bạn muốn màu success)
-        .setTimestamp();
-      message.channel.send({ embeds: [achievementEmbed] });
-    });
-  }, 2000);
-}
-
-
+      // CREATE EMBED FIRST, THEN USE IT
       const huntEmbed = new EmbedBuilder()
         .setTitle('🏹 Săn bắn thành công!')
         .setDescription(`Bạn đã săn được và nhận được **${reward} coins**!`)
@@ -127,6 +102,23 @@ if (newAchievements && newAchievements.length > 0) {
         setTimeout(() => {
           message.channel.send({ content: levelUpResult.message });
         }, 1000);
+      }
+
+      // ===== GỬI EMBED THÀNH TỰU MỚI (nếu có) =====
+      if (newAchievements && newAchievements.length > 0) {
+        setTimeout(() => {
+          newAchievements.forEach(achievement => {
+            const achievementEmbed = new EmbedBuilder()
+              .setTitle('🏆 Thành tựu mới!')
+              .setDescription(`Bạn đã hoàn thành: **${achievement.name}**`)
+              .addFields(
+                { name: '🎁 Phần thưởng:', value: `+${achievement.reward.toLocaleString()} coins`, inline: true }
+              )
+              .setColor('#FFD580')
+              .setTimestamp();
+            message.channel.send({ embeds: [achievementEmbed] });
+          });
+        }, 2000);
       }
 
     } else {

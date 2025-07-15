@@ -291,17 +291,18 @@ module.exports = {
       EconomyDatabase.updateUser(message.author.id, updatedUser); // Cập nhật lại user với inventory mới
       
       const successEmbed = new EmbedBuilder()
-       .setTitle('🛒🎉 Mua thành công!')
-       .setDescription(`Bạn đã mua **${item.emoji || ''} ${item.name}** thành công!`)
-       .addFields(
-        { name: '💰 Số dư còn lại', value: `${updatedUser.money.toLocaleString()} 🪙`, inline: true },
-        { name: '🧳 Tổng vật phẩm', value: `${(user.inventory[itemKey] || 0).toLocaleString()} cái`, inline: true }
-       )
-       .setColor(message.client.config?.embedColors?.success || '#43EA97')
-       .setFooter({ text: 'Cảm ơn bạn đã mua sắm tại Shop!' })
-       .setTimestamp();
-       await message.reply({ embeds: [successEmbed] });
-
+        .setTitle('🛒🎉 Mua thành công!')
+        .setDescription(`Bạn đã mua **${selectedItem.name}** thành công!`)
+        .addFields(
+          { name: '💰 Số dư còn lại', value: `${updatedUser.money.toLocaleString()} 🪙`, inline: true },
+          { name: '🎒 Vật phẩm mới', value: `${selectedItem.name}`, inline: true },
+          { name: '📦 Tổng vật phẩm', value: `${Object.keys(updatedUser.inventory).length} cái`, inline: true }
+        )
+        .setColor('#43EA97')
+        .setFooter({ text: 'Cảm ơn bạn đã mua sắm tại Shop!' })
+        .setTimestamp();
+        
+      await message.reply({ embeds: [successEmbed] });
     }
   }
 };

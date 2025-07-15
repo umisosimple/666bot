@@ -2,6 +2,26 @@ const { EmbedBuilder } = require('discord.js');
 const EconomyDatabase = require('../../database/economy');
 const { onWorkSuccess } = require('./achievements');
 
+function autoResetTasks(user, now, oneDay) {
+  if (!user.tasks || !user.tasks.lastReset || now - user.tasks.lastReset >= oneDay) {
+    user.tasks = {
+      fish: 0,
+      hunt: 0,
+      work: 0,
+      daily: false,
+      fishClaimed: false,
+      huntClaimed: false,
+      workClaimed: false,
+      dailyClaimed: false,
+      claimed: false,
+      lastReset: now
+    };
+    EconomyDatabase.updateUser(user.id || user.userId, user);
+    return true;
+  }
+  return false;
+}
+
 module.exports = {
   data: {
     name: 'work',
@@ -23,7 +43,15 @@ module.exports = {
         ]
       });
     }
+
+    // ===== ADD: Daily tasks integration =====
+    user.id = userId; // Ensure user has id field
     const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    // Reset nhiệm vụ nếu đã qua 24h
+    autoResetTasks(user, now, oneDay);
+
     const diff = now - (user.lastWork || 0);
 
     if (diff < 1800000) {
@@ -43,6 +71,11 @@ module.exports = {
     const coinReward = 800 + Math.floor(Math.random() * 500);
     user.coins += coinReward;
     user.lastWork = now;
+
+    // ===== ADD: Update dailytask progress =====
+    user.tasks = user.tasks || {};
+    user.tasks.work = (user.tasks.work || 0) + 1;
+
     EconomyDatabase.updateUser(userId, user);
 
     // Check achievement

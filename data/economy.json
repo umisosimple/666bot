@@ -1,9 +1,9 @@
 {
   "532160348300771338": {
-    "money": 1741,
+    "money": 1943,
     "bank": 0,
     "level": 4,
-    "exp": 85,
+    "exp": 316,
     "daily": 1752432894777,
     "weekly": 0,
     "monthly": 0,
@@ -141,31 +141,36 @@
         "reward": 5000
       }
     ],
-    "lastHunt": 1752472009868,
+    "lastHunt": 1752593574151,
     "lastFish": 1752471968312,
     "lastMine": 0,
-    "lastRob": 1752526358210,
+    "lastRob": 1752603544499,
     "streak": {
       "daily": 2,
       "hunt": 0,
       "fish": 0
     },
-    "lastWork": 1752471961012,
+    "lastWork": 1752603874524,
     "huntingStats": {
-      "totalHunted": 5,
+      "totalHunted": 6,
       "bestHunt": {
         "name": "🦌 Hươu",
         "value": 336
       }
     },
     "tasks": {
-      "daily": false,
       "fish": 0,
-      "hunt": 0,
-      "work": 0,
-      "lastReset": 1752478079032
+      "hunt": 1,
+      "work": 2,
+      "daily": false,
+      "fishClaimed": false,
+      "huntClaimed": false,
+      "workClaimed": false,
+      "dailyClaimed": false,
+      "claimed": false,
+      "lastReset": 1752567957435
     },
-    "lastMessageExp": 1752558924837,
+    "lastMessageExp": 1752604793271,
     "fishingStats": {
       "totalCaught": 2,
       "bestFish": null
@@ -174,14 +179,15 @@
       "totalWorked": 4
     },
     "id": "532160348300771338",
-    "coins": null,
-    "lastDaily": 1752528091950
+    "coins": 1737,
+    "lastDaily": 1752528091950,
+    "lastVoiceExp": 1752591255144
   },
   "695878055679230012": {
-    "money": 1233,
-    "bank": 1837,
-    "level": 5,
-    "exp": 470,
+    "money": 283,
+    "bank": 337,
+    "level": 6,
+    "exp": 299,
     "daily": 1752478010626,
     "weekly": 0,
     "monthly": 0,
@@ -191,6 +197,12 @@
         "type": "consumable",
         "description": "Tăng gấp đôi EXP nhận được trong 1 giờ",
         "purchaseDate": 1752431179434
+      },
+      "fishing_rod": {
+        "name": "🎣 Cần câu cao cấp",
+        "type": "tool",
+        "description": "Tăng 20% tỷ lệ câu cá thành công",
+        "purchaseDate": 1752604034594
       }
     },
     "pets": [],
@@ -326,28 +338,28 @@
         "reward": 5000
       }
     ],
-    "lastHunt": 1752521862609,
-    "lastFish": 1752521868230,
+    "lastHunt": 1752604728952,
+    "lastFish": 1752604721887,
     "lastMine": 0,
-    "lastRob": 1752520337033,
+    "lastRob": 1752603572537,
     "streak": {
       "daily": 2,
       "hunt": 0,
       "fish": 0
     },
     "fishingStats": {
-      "totalCaught": 17,
+      "totalCaught": 21,
       "bestFish": {
         "name": "🐟 Cá nhỏ",
         "value": 88
       }
     },
-    "lastWork": 1752521872580,
-    "lastMessageExp": 1752522224596,
+    "lastWork": 1752603595879,
+    "lastMessageExp": 1752605493365,
     "tasks": {
-      "fish": 5,
-      "hunt": 5,
-      "work": 4,
+      "fish": 12,
+      "hunt": 11,
+      "work": 6,
       "daily": false,
       "fishClaimed": true,
       "huntClaimed": true,
@@ -360,11 +372,13 @@
       "totalWorked": 18
     },
     "huntingStats": {
-      "totalHunted": 15,
+      "totalHunted": 20,
       "bestHunt": null
     },
     "id": "695878055679230012",
-    "lastVoiceExp": 1752545986343
+    "lastVoiceExp": 1752604610239,
+    "coins": 1771,
+    "lastDaily": 1752575202124
   },
   "1110971469179142204": {
     "money": 2084,
