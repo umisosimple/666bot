@@ -187,7 +187,7 @@
     "money": 283,
     "bank": 337,
     "level": 6,
-    "exp": 299,
+    "exp": 333,
     "daily": 1752478010626,
     "weekly": 0,
     "monthly": 0,
@@ -355,18 +355,18 @@
       }
     },
     "lastWork": 1752603595879,
-    "lastMessageExp": 1752605493365,
+    "lastMessageExp": 1752609755464,
     "tasks": {
-      "fish": 12,
-      "hunt": 11,
-      "work": 6,
+      "fish": 0,
+      "hunt": 0,
+      "work": 0,
       "daily": false,
-      "fishClaimed": true,
-      "huntClaimed": true,
-      "workClaimed": true,
+      "fishClaimed": false,
+      "huntClaimed": false,
+      "workClaimed": false,
       "dailyClaimed": false,
       "claimed": false,
-      "lastReset": 1752520307182
+      "lastReset": 1752609732924
     },
     "workStats": {
       "totalWorked": 18
@@ -376,7 +376,7 @@
       "bestHunt": null
     },
     "id": "695878055679230012",
-    "lastVoiceExp": 1752604610239,
+    "lastVoiceExp": 1752609596531,
     "coins": 1771,
     "lastDaily": 1752575202124
   },
@@ -384,10 +384,10 @@
     "money": 2084,
     "bank": 0,
     "level": 3,
-    "exp": 47,
+    "exp": 57,
     "daily": 0,
     "lastMessageExp": 1752556001912,
-    "lastVoiceExp": 1752484708227,
+    "lastVoiceExp": 1752609288094,
     "lastFish": 1752437657779,
     "lastHunt": 1752432973314,
     "lastWork": 1752437785248,

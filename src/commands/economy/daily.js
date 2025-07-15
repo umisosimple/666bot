@@ -45,7 +45,6 @@ module.exports = {
     user.coins += coinReward;
     user.lastDaily = now;
 
-    // ===== FIX: Update dailytask progress =====
     // Initialize tasks if not exists
     if (!user.tasks) {
       user.tasks = {
@@ -62,28 +61,38 @@ module.exports = {
       };
     }
 
-    // Check if tasks need to be reset (24h passed)
-    const oneDay = 24 * 60 * 60 * 1000;
-    if (!user.tasks.lastReset || now - user.tasks.lastReset >= oneDay) {
-      user.tasks = {
-        fish: 0,
-        hunt: 0,
-        work: 0,
-        daily: false,
-        fishClaimed: false,
-        huntClaimed: false,
-        workClaimed: false,
-        dailyClaimed: false,
-        claimed: false,
-        lastReset: now
-      };
+    // Reset tasks if needed
+    const resetResult = EconomyDatabase.resetTasksIfNeeded(userId, now);
+    if (!resetResult.success) {
+      console.error(`Failed to reset tasks for user ${userId}:`, resetResult.message);
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('Lỗi')
+            .setDescription('Không thể reset nhiệm vụ hàng ngày. Vui lòng thử lại sau!')
+            .setColor('#FF89A0')
+        ]
+      });
     }
 
     // Mark daily task as completed
     user.tasks.daily = true;
-    // ===== END FIX =====
+    console.log(`Before saving user ${userId} in daily.js:`, user.tasks);
 
-    EconomyDatabase.updateUser(userId, user);
+    // Save user data
+    const saveResult = EconomyDatabase.updateUser(userId, user);
+    if (!saveResult.success) {
+      console.error(`Failed to save user ${userId} in daily.js:`, saveResult.message);
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('Lỗi')
+            .setDescription('Không thể lưu dữ liệu. Vui lòng thử lại sau!')
+            .setColor('#FF89A0')
+        ]
+      });
+    }
+    console.log(`Successfully saved user ${userId} in daily.js:`, user.tasks);
 
     // Check achievement
     const newAchievements = onDailyReward(userId);

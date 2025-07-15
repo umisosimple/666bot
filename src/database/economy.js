@@ -13,33 +13,56 @@ class EconomyDatabase {
     try {
       if (fs.existsSync(this.dbPath)) {
         const data = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
+        console.log('Successfully loaded economy data from:', this.dbPath);
         return data;
       }
+      console.log('No economy data file found, initializing empty database');
     } catch (error) {
-      console.error('Error loading economy data:', error);
+      console.error('Error loading economy data:', error.message);
     }
     return {};
   }
 
-  async saveData() {
-    if (this.saving) return;
+  async saveData(attempts = 3, delay = 100) {
+    if (this.saving) {
+      console.log('Save operation queued: previous save still in progress');
+      if (attempts <= 0) {
+        return { success: false, message: 'Max save attempts reached: previous save still in progress' };
+      }
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return this.saveData(attempts - 1, delay * 2);
+    }
     this.saving = true;
     
     try {
       const dir = path.dirname(this.dbPath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+        console.log('Created directory:', dir);
       }
       
       // Backup trước khi save
       const backupPath = this.dbPath + '.backup';
       if (fs.existsSync(this.dbPath)) {
         fs.copyFileSync(this.dbPath, backupPath);
+        console.log('Created backup at:', backupPath);
       }
       
+      // Ghi dữ liệu
+      console.log('Saving economy data:', JSON.stringify(this.data, null, 2));
       fs.writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2));
+      
+      // Kiểm tra dữ liệu đã ghi
+      const savedData = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
+      if (JSON.stringify(savedData) !== JSON.stringify(this.data)) {
+        throw new Error('Saved data does not match in-memory data');
+      }
+      
+      console.log('Successfully saved economy data to:', this.dbPath);
+      return { success: true };
     } catch (error) {
-      console.error('Error saving economy data:', error);
+      console.error('Error saving economy data:', error.message);
+      return { success: false, message: `Failed to save economy data: ${error.message}` };
     } finally {
       this.saving = false;
     }
@@ -91,7 +114,6 @@ class EconomyDatabase {
   }
 
   validateInventoryItem(itemId, quantity = 1) {
-    // Cập nhật list items khớp với shop.js
     const validItems = [
       'exp_booster', 'fishing_rod', 'hunting_bow', 'lucky_charm',
       'bank_upgrade', 'vip_pass', 'fishing_rod_pro', 'hunting_bow_pro', 'golden_charm'
@@ -108,14 +130,13 @@ class EconomyDatabase {
     };
   }
 
-  // Cooldown validation
- validateCooldown(lastTime, cooldownMs, actionName) {
+  validateCooldown(lastTime, cooldownMs, actionName) {
     const now = Date.now();
     const timeLeft = lastTime + cooldownMs - now;
     
     if (timeLeft > 0) {
       const minutes = Math.floor(timeLeft / 60000);
-      const seconds = Math.ceil((timeLeft % 60000) / 1000); // Lấy giây còn lại
+      const seconds = Math.ceil((timeLeft % 60000) / 1000);
       const hours = Math.floor(timeLeft / 3600000);
       
       let timeMsg = '';
@@ -130,7 +151,7 @@ class EconomyDatabase {
       return {
         valid: false,
         message: `Bạn cần đợi **${timeMsg}** để thực hiện **${actionName}** tiếp theo!`,
-        timeLeft: timeLeft // Thời gian còn lại tính bằng ms
+        timeLeft: timeLeft
       };
     }
     
@@ -182,10 +203,20 @@ class EconomyDatabase {
           fish: 0,
           hunt: 0,
           work: 0,
+          fishClaimed: false,
+          huntClaimed: false,
+          workClaimed: false,
+          dailyClaimed: false,
+          claimed: false,
           lastReset: null
         }
       };
-      this.saveData();
+      const saveResult = this.saveData();
+      if (!saveResult.success) {
+        console.error(`Failed to save new user ${userId}: ${saveResult.message}`);
+      } else {
+        console.log(`Successfully created and saved new user ${userId}`);
+      }
     }
     return this.data[userId];
   }
@@ -226,8 +257,15 @@ class EconomyDatabase {
       throw new Error('Invalid user ID');
     }
     
+    console.log(`Updating user ${userId} with data:`, JSON.stringify(userData, null, 2));
     this.data[userId] = { ...this.getUser(userId), ...userData };
-    this.saveData();
+    const saveResult = this.saveData();
+    if (!saveResult.success) {
+      console.error(`Failed to update user ${userId}: ${saveResult.message}`);
+      return { success: false, message: saveResult.message || 'Unknown error during save' };
+    }
+    console.log(`Successfully updated user ${userId}`);
+    return { success: true };
   }
 
   addMoney(userId, amount) {
@@ -237,8 +275,7 @@ class EconomyDatabase {
     
     const user = this.getUser(userId);
     user.money = Math.max(0, user.money + Math.floor(amount));
-    this.updateUser(userId, user);
-    return user.money;
+    return this.updateUser(userId, user);
   }
 
   removeMoney(userId, amount) {
@@ -249,10 +286,9 @@ class EconomyDatabase {
     const user = this.getUser(userId);
     if (user.money >= amount) {
       user.money -= Math.floor(amount);
-      this.updateUser(userId, user);
-      return true;
+      return this.updateUser(userId, user);
     }
-    return false;
+    return { success: false, message: 'Số dư không đủ' };
   }
 
   transferMoney(fromUserId, toUserId, amount, reason = '') {
@@ -269,12 +305,14 @@ class EconomyDatabase {
       fromUser.money -= Math.floor(amount);
       toUser.money += Math.floor(amount);
       
-      this.updateUser(fromUserId, fromUser);
-      this.updateUser(toUserId, toUser);
+      const fromResult = this.updateUser(fromUserId, fromUser);
+      const toResult = this.updateUser(toUserId, toUser);
       
-      // Log transaction (có thể mở rộng sau)
+      if (!fromResult.success || !toResult.success) {
+        return { success: false, message: 'Lỗi khi lưu giao dịch' };
+      }
+      
       this.logTransaction(fromUserId, toUserId, amount, reason);
-      
       return { success: true };
     }
     
@@ -293,14 +331,53 @@ class EconomyDatabase {
     return user.money >= amount;
   }
 
-  // EXP & Level
+  resetTasksIfNeeded(userId, now) {
+    const user = this.getUser(userId);
+    const oneDay = 24 * 60 * 60 * 1000;
+    console.log(`Checking reset for user ${userId}: lastReset=${user.tasks.lastReset}, now=${now}, diff=${now - user.tasks.lastReset}, oneDay=${oneDay}`);
+    
+    if (!user.tasks.lastReset || now - user.tasks.lastReset >= oneDay) {
+      console.log(`Resetting tasks for user ${userId} at ${new Date(now).toISOString()}`);
+      user.tasks = {
+        fish: 0,
+        hunt: 0,
+        work: 0,
+        daily: false,
+        fishClaimed: false,
+        huntClaimed: false,
+        workClaimed: false,
+        dailyClaimed: false,
+        claimed: false,
+        lastReset: now
+      };
+      const saveResult = this.updateUser(userId, user);
+      if (!saveResult.success) {
+        console.error(`Failed to save reset tasks for user ${userId}: ${saveResult.message}`);
+        return saveResult;
+      }
+      console.log(`Successfully reset tasks for user ${userId}`);
+      return { success: true };
+    }
+    console.log(`No reset needed for user ${userId}`);
+    return { success: true };
+  }
+
+  resetDailyTasks() {
+    const now = Date.now();
+    console.log(`Starting resetDailyTasks at ${new Date(now).toISOString()}`);
+    Object.keys(this.data).forEach(userId => {
+      this.resetTasksIfNeeded(userId, now);
+    });
+    return { success: true };
+  }
+
+  // Các hàm khác giữ nguyên...
   addExp(userId, amount) {
     const user = this.getUser(userId);
     let oldLevel = user.level;
     user.exp += amount;
     let leveledUp = false;
     let message = null;
-    // Giả sử mỗi level cần 100 * level exp, bạn có thể sửa công thức này
     while (user.exp >= user.level * 100) {
       user.exp -= user.level * 100;
       user.level += 1;
@@ -314,7 +391,6 @@ class EconomyDatabase {
     return null;
   }
 
-  // ==== BỔ SUNG HÀM DÀNH RIÊNG CHO VOICE ====
   setVoiceJoinedAt(userId, timestamp) {
     const user = this.getUser(userId);
     user.voiceJoinedAt = timestamp;
@@ -332,7 +408,6 @@ class EconomyDatabase {
     this.updateUser(userId, user);
   }
 
-  // Thông báo lên cấp
   levelUp(userId) {
     const user = this.getUser(userId);
     const oldLevel = user.level;
@@ -355,16 +430,15 @@ class EconomyDatabase {
     };
   }
 
-addMessageExp(userId) {
+  addMessageExp(userId) {
     const user = this.getUser(userId);
     
-    // Kiểm tra cooldown nhưng không trả về thông báo
     const cooldownCheck = this.validateCooldown(user.lastMessageExp, 60000, 'nhắn tin để nhận EXP');
     if (!cooldownCheck.valid) {
-      return { success: false }; // Không có message
+      return { success: false };
     }
 
-    const expGain = Math.floor(Math.random() * 15) + 5; // 5-20 EXP
+    const expGain = Math.floor(Math.random() * 15) + 5;
     user.exp += expGain;
     user.lastMessageExp = Date.now();
 
@@ -385,7 +459,7 @@ addMessageExp(userId) {
       return { success: false, message: cooldownCheck.message };
     }
 
-    const expGain = Math.floor(Math.random() * 20) + 10; // 10-30 EXP
+    const expGain = Math.floor(Math.random() * 20) + 10;
     user.exp += expGain;
     user.lastVoiceExp = Date.now();
 
@@ -433,7 +507,6 @@ addMessageExp(userId) {
     };
   }
 
-  // Optimized leaderboard với pagination
   getLeaderboard(type = 'money', limit = 10, offset = 0) {
     const users = Object.entries(this.data);
     let sortedUsers = [];
@@ -476,7 +549,6 @@ addMessageExp(userId) {
       }));
   }
 
-  // Thêm method để check achievements
   checkAchievements(userId) {
     const user = this.getUser(userId);
     const completedAchievements = [];
@@ -485,29 +557,23 @@ addMessageExp(userId) {
       if (!achievement.completed) {
         let shouldComplete = false;
 
-        // Check fishing achievements
         if (achievement.name.includes('câu cá')) {
           const fishCount = user.fishingStats?.totalCaught || 0;
           if (achievement.name === 'Lần đầu câu cá' && fishCount >= 1) shouldComplete = true;
           else if (achievement.name === 'Câu cá 50 lần' && fishCount >= 50) shouldComplete = true;
           else if (achievement.name === 'Câu cá 100 lần' && fishCount >= 100) shouldComplete = true;
-          // ... other fishing achievements
         }
 
-        // Check hunting achievements
         if (achievement.name.includes('săn bắn')) {
           const huntCount = user.huntingStats?.totalHunted || 0;
           if (achievement.name === 'Lần đầu săn bắt' && huntCount >= 1) shouldComplete = true;
           else if (achievement.name === 'Săn bắn 50 lần' && huntCount >= 50) shouldComplete = true;
-          // ... other hunting achievements
         }
 
-        // Check work achievements
         if (achievement.name.includes('làm việc')) {
           const workCount = user.workStats?.totalWorked || 0;
           if (achievement.name === 'Lần đầu làm việc' && workCount >= 1) shouldComplete = true;
           else if (achievement.name === 'Làm việc 50 lần' && workCount >= 50) shouldComplete = true;
-          // ... other work achievements
         }
 
         if (shouldComplete) {
@@ -525,7 +591,6 @@ addMessageExp(userId) {
     return completedAchievements;
   }
 
-  // Utility methods
   getUserCount() {
     return Object.keys(this.data).length;
   }
@@ -534,7 +599,6 @@ addMessageExp(userId) {
     return Object.values(this.data).reduce((total, user) => total + user.money + user.bank, 0);
   }
 
-  // Transaction logging
   logTransaction(fromUserId, toUserId, amount, reason) {
     const logEntry = {
       timestamp: Date.now(),
@@ -544,11 +608,9 @@ addMessageExp(userId) {
       reason: reason || 'No reason provided'
     };
     
-    // Có thể mở rộng để lưu vào file log riêng
     console.log('Transaction:', logEntry);
   }
 
-  // Inventory management - CẬP NHẬT
   addItemToInventory(userId, itemId, quantity = 1) {
     const validation = this.validateInventoryItem(itemId, quantity);
     if (!validation.valid) {
@@ -573,11 +635,9 @@ addMessageExp(userId) {
     return { success: true };
   }
 
-  // Thêm method mới để handle inventory từ shop
   addShopItemToInventory(userId, itemData) {
     const user = this.getUser(userId);
     
-    // Tạo inventory structure tương thích với shop.js
     user.inventory[itemData.id] = {
       name: itemData.name,
       type: itemData.type,
@@ -603,7 +663,6 @@ addMessageExp(userId) {
         delete user.inventory[itemId];
       }
     } else {
-      // Nếu item không có quantity (từ shop), xóa luôn
       delete user.inventory[itemId];
     }
     
@@ -611,7 +670,6 @@ addMessageExp(userId) {
     return { success: true };
   }
 
-  // Cập nhật getItemName method
   getItemName(itemId) {
     const itemNames = {
       'fishing_rod': '🎣 Cần câu cao cấp',
@@ -627,7 +685,6 @@ addMessageExp(userId) {
     return itemNames[itemId] || 'Unknown Item';
   }
 
-  // Cập nhật getItemDescription method
   getItemDescription(itemId) {
     const descriptions = {
       'fishing_rod': 'Tăng 20% tỷ lệ câu cá thành công',
@@ -643,7 +700,6 @@ addMessageExp(userId) {
     return descriptions[itemId] || 'No description available';
   }
 
-  // Thêm method getItemType
   getItemType(itemId) {
     const itemTypes = {
       'fishing_rod': 'tool',
@@ -659,24 +715,8 @@ addMessageExp(userId) {
     return itemTypes[itemId] || 'misc';
   }
 
-  // Thêm method validateUserInput để tránh lỗi
   validateUserInput(input) {
     return validateContent(input);
-  }
-
-  resetDailyTasks() {
-    const now = Date.now();
-    Object.keys(this.data).forEach(userId => {
-      const user = this.data[userId];
-      if (!user.tasks.lastReset || now - user.tasks.lastReset >= 24 * 60 * 60 * 1000) {
-        user.tasks.daily = false;
-        user.tasks.fish = 0;
-        user.tasks.hunt = 0;
-        user.tasks.work = 0;
-        user.tasks.lastReset = now;
-      }
-    });
-    this.saveData();
   }
 }
 
