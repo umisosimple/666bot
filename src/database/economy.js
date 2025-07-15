@@ -12,7 +12,12 @@ class EconomyDatabase {
   loadData() {
     try {
       if (fs.existsSync(this.dbPath)) {
-        const data = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
+        const rawData = fs.readFileSync(this.dbPath, 'utf8');
+        if (!rawData.trim()) {
+          console.log('Economy data file is empty, initializing empty database');
+          return {};
+        }
+        const data = JSON.parse(rawData);
         console.log('Successfully loaded economy data from:', this.dbPath);
         return data;
       }
@@ -23,50 +28,57 @@ class EconomyDatabase {
     return {};
   }
 
-  async saveData(attempts = 3, delay = 100) {
-    if (this.saving) {
-      console.log('Save operation queued: previous save still in progress');
-      if (attempts <= 0) {
-        return { success: false, message: 'Max save attempts reached: previous save still in progress' };
-      }
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return this.saveData(attempts - 1, delay * 2);
+async saveData(attempts = 5, delay = 100) {
+  if (this.saving) {
+    console.log('Save operation queued: previous save still in progress');
+    if (attempts <= 0) {
+      return { success: false, message: 'Max save attempts reached' };
     }
-    this.saving = true;
-    
-    try {
-      const dir = path.dirname(this.dbPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log('Created directory:', dir);
-      }
-      
-      // Backup trước khi save
-      const backupPath = this.dbPath + '.backup';
-      if (fs.existsSync(this.dbPath)) {
-        fs.copyFileSync(this.dbPath, backupPath);
-        console.log('Created backup at:', backupPath);
-      }
-      
-      // Ghi dữ liệu
-      console.log('Saving economy data:', JSON.stringify(this.data, null, 2));
-      fs.writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2));
-      
-      // Kiểm tra dữ liệu đã ghi
-      const savedData = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
-      if (JSON.stringify(savedData) !== JSON.stringify(this.data)) {
-        throw new Error('Saved data does not match in-memory data');
-      }
-      
-      console.log('Successfully saved economy data to:', this.dbPath);
-      return { success: true };
-    } catch (error) {
-      console.error('Error saving economy data:', error.message);
-      return { success: false, message: `Failed to save economy data: ${error.message}` };
-    } finally {
-      this.saving = false;
-    }
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return this.saveData(attempts - 1, delay * 2);
   }
+  this.saving = true;
+
+  try {
+    const dir = path.dirname(this.dbPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log('Created directory:', dir);
+    }
+
+    const backupPath = this.dbPath + '.backup';
+    if (fs.existsSync(this.dbPath)) {
+      fs.copyFileSync(this.dbPath, backupPath);
+      console.log('Created backup at:', backupPath);
+    }
+
+    console.log('Saving economy data:', JSON.stringify(this.data, null, 2));
+    fs.writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2), 'utf8');
+
+    if (!fs.existsSync(this.dbPath)) {
+      throw new Error('Economy data file was not created');
+    }
+
+    const rawData = fs.readFileSync(this.dbPath, 'utf8');
+    if (!rawData.trim()) {
+      throw new Error('Economy data file is empty after save');
+    }
+
+    try {
+      JSON.parse(rawData);
+    } catch (parseError) {
+      throw new Error(`Failed to parse saved economy data: ${parseError.message}`);
+    }
+
+    console.log('Successfully saved economy data to:', this.dbPath);
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving economy data:', error.message);
+    return { success: false, message: `Failed to save: ${error.message}` };
+  } finally {
+    this.saving = false;
+  }
+}
 
   // Validation helpers
   isValidUserId(userId) {
@@ -371,7 +383,6 @@ class EconomyDatabase {
     return { success: true };
   }
 
-  // Các hàm khác giữ nguyên...
   addExp(userId, amount) {
     const user = this.getUser(userId);
     let oldLevel = user.level;
